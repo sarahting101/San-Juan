@@ -378,7 +378,7 @@ void builder(uint8_t governor,uint8_t p){
 	//build card
 	built[p][built_sum[p]] = player_cardnum[p][tobuild];
 	built_sum[p]++;
-	printf("%s build %s, ",player_name[p],name[player_cardnum[p][tobuild]]);
+	printf("%s builds %s, ",player_name[p],name[player_cardnum[p][tobuild]]);
 	//delete the card which is built and row all card 
 	cost_card += cost[player_cardnum[p][tobuild]];
 	uint8_t tobuild2 = player_cardnum[p][tobuild];
@@ -864,7 +864,7 @@ void counciler(uint8_t governor, uint8_t p){
 	}
 	if(p==0){
 		//player
-		printf("Please choose %d card(s) to keep.\n",getcard);
+		printf("You have Archive ! Please choose %d card(s) to keep.\n",getcard);
 		
 		if(flag==1){
 			//Archive
@@ -891,14 +891,15 @@ void counciler(uint8_t governor, uint8_t p){
 					choose = yourans();
 				}
 				list[choose-1]=0;
-				player_cardnum[0][i]=player_cardnum[0][choose-1];
 
 				if(choose-1<player_sum[0]){
+					player_cardnum[0][i]=player_cardnum[0][choose-1];
 					discard[discard_sum] = player_cardnum[0][choose-1];
 					discard_sum++;
 					// player_cardnum[0][choose-1]=30;
 				}
 				else{
+					player_cardnum[0][i]=draw_card[choose-1-player_sum[0]];
 					discard[discard_sum] = draw_card[choose-1];
 					discard_sum++;
 					draw_card[i]=30;

@@ -1,2 +1,2 @@
-all: project1.c
-	gcc project2.c -o project
+all: project.c
+	gcc project.c -o project
