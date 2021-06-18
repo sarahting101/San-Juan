@@ -864,11 +864,11 @@ void counciler(uint8_t governor, uint8_t p){
 	}
 	if(p==0){
 		//player
-		printf("You have Archive ! Please choose %d card(s) to keep.\n",getcard);
 		
 		if(flag==1){
 			//Archive
 			// uint8_t flag2 = 0;
+			printf("You have Archive ! Please choose %d card(s) to keep.\n",getcard);
 			uint8_t choose = 0;
 			uint8_t list[25]={0};
 			// uint8_t listnum = 0;
@@ -914,6 +914,7 @@ void counciler(uint8_t governor, uint8_t p){
 			uint8_t choose = 0;
 			uint8_t cardlist[3]={0};
 			uint8_t listnum = 0;
+			printf("Please choose %d card(s) to keep.\n",getcard);
 			while(1){
 				listnum=0;
 				for(size_t i = 0 ; i < draw ; i++){
@@ -1338,7 +1339,7 @@ int main(){
 			}
 			else{
 				//com
-				for(size_t j = 7 ; j < player_sum[i] ; j++){
+				for(size_t j = player_sum[i]-1 ; j >= player_sum[i]-dis  ; j--){
 					discard[discard_sum] = player_cardnum[i][j];
 					discard_sum++;
 					player_cardnum[i][j] = 30;
