@@ -264,7 +264,7 @@ void builder(uint8_t governor,uint8_t p){
 		uint8_t flag = 0;
 		printf("Please choose a card to build or 0 to skip.\n");
 		for(size_t i = 0 ; i < player_sum[0] ; i++){
-			printf("\t%ld: %s\n",i+1,name[player_cardnum[0][i]]);
+			printf("%ld: %s\n",i+1,name[player_cardnum[0][i]]);
 		}
 		printf("Your answer: ");
 		choose = yourans();
