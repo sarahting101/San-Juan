@@ -143,7 +143,9 @@ void builder(uint8_t governor,uint8_t p){
 		if(p==0){
 			//player
 			uint8_t choose=0;
-			printf("Please choose up to two goods to discard for black market.\n");
+			uint8_t choose2=0;
+
+			printf("Please choose up to two goods to discard for black market.(or 0 to skip)\n");
 			for(size_t i = 0 ; i<built_sum[0] ; i++){
 				if(built[0][i]>=6 && built[0][i]<=10 && product[0][i]!=30){
 					printf("%d: %s\n",n+1,name[built[0][i]]);
@@ -151,23 +153,40 @@ void builder(uint8_t governor,uint8_t p){
 					n++;
 				}
 			}
-			printf("Card1:(or 0 to skip) ");
+			printf("Card1: ");
 			choose = yourans();
+			while(1){
+				if(choose<0||choose>n){
+					printf("input error\n");
+					printf("Card1: ");
+					choose = yourans();
+				}
+			}
 			if(choose==0){
 				break;
 			}
 			else{
 				product[0][newi[choose-1]] = 30;
 				cost_card--;
+				product_sum[0]--;
 			}
-			printf("Card2:(or 0 to skip) ");
-			choose = yourans();
-				if(choose==0){
+			printf("Card2: ");
+			choose2 = yourans();
+			while(1){
+				if(choose2<0||choose2>n||choose==choose2){
+					printf("input error\n");
+					printf("Card2: ");
+					choose2 = yourans();
+				}
+			}
+			if(choose2==0){
 				break;
 			}
 			else{
-				product[0][newi[choose-1]] = 30;
+				product[0][newi[choose2-1]] = 30;
 				cost_card--;
+				product_sum[0]--;
+
 			}
 			break;
 
@@ -186,7 +205,9 @@ void builder(uint8_t governor,uint8_t p){
 			while(n>=0){
 				product[p][newi[n-1]] = 30;
 				cost_card--;
+				product_sum[p]--;
 				n--;
+
 			}
 		}
 	}
@@ -596,8 +617,10 @@ void producer(uint8_t governor, uint8_t p){
 	}
 	else{
 		//well
-		player_cardnum[p][player_sum[p]] = setCardNum();
-		player_sum[p]++;
+		if(findcard(p, 11)==1){
+			player_cardnum[p][player_sum[p]] = setCardNum();
+			player_sum[p]++;
+		}
 		printf("%s produce %d goods\n",player_name[p],wantproduce);
 	}
 }
