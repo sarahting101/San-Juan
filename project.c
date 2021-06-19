@@ -28,12 +28,12 @@ uint8_t phase[]={1,1,1,1,1,1,2,2,2,2,2,2,2,3,3,3,4,4,5,6,6,7,8,8,8,9,9,9,9};
 	8: monument
 	9: after finish
 */
-uint8_t point[]={1,1,1,1,2,2,1,1,2,1,3,1,2,1,2,1,1,2,1,2,2,3,3,4,5,0,0,0,0};
+uint8_t point[]={1,1,1,1,2,2,1,1,2,2,3,1,2,1,2,1,1,2,1,2,2,3,3,4,5,0,0,0,0};
 uint8_t piece[]={3,3,3,3,3,3,6,8,8,8,8,3,3,3,3,3,3,3,3,3,3,3,3,3,3,2,2,2,2};
 int8_t sum = 106;
 //discard
 uint8_t discard[111] = {0};
-uint8_t discard_sum = 0;
+int8_t discard_sum = 0;
 
 //player
 char player_name[5][32]={"Player","Com 1 ","Com 2 ","Com 3 "};
@@ -63,15 +63,28 @@ uint8_t yourans(){
 }
 
 uint8_t setCardNum(){
-	int8_t x = rand()%sum+1;
+	int8_t x = 0;
 	uint8_t i = 0;
 	// printf("x: %d\n",x);
 	if(sum==0){
 		for(size_t i = 0 ; i<discard_sum ; i++){
 			piece[discard[i]]++;
 		}
+		sum = discard_sum;
+		discard_sum = 0;
 	}
-	while(x>0){
+	// else if(sum ==1){
+	// 	for(size_t i = 0 ; i < 29 ; i++){
+	// 		if(piece[i]!=0){
+	// 			piece[i]--;
+	// 			sum--;
+	// 			return i;
+	// 		}
+	// 	}
+	// }
+	// x = rand()%sum+1;
+	x = rand()%sum;
+	while(x>=0){
 		// printf("i: %d,",i);
 		x = x - piece[i];
 		// printf("x: %d\n",x);
@@ -87,28 +100,30 @@ uint8_t setCardNum(){
 	return i-1;
 }
 
-uint8_t findcard(uint8_t p, uint8_t b){
-	//1isfind
-	for(size_t i = 0 ; i < built_sum[p] ; i++){
-		if(built[p][i]==b){
-			return 1;
-		}
-	}
-	return 0;
-}
+// uint8_t findcard(uint8_t p, uint8_t b){
+// 	uint8_t i = 0;
+// 	//1isfind
+// 	for(size_t i = 0 ; i < built_sum[p] ; i++){
+// 		if(built[p][i]==b){
+// 			i = 1;
+// 			break;
+// 		}
+// 	}
+// 	return i;
+// }
 
 
-uint8_t choose_list(uint8_t num, uint8_t list[]){
-	//return 0: has same answer
-	for(size_t i = 0 ; i < num ; i++){
-		for(size_t j = i+1 ; j < num ; j++){
-			if(list[i]==list[j]){
-				return 0;
-			}
-		}
-	}
-	return 1;
-}
+// uint8_t choose_list(uint8_t num, uint8_t list[]){
+// 	//return 0: has same answer
+// 	for(size_t i = 0 ; i < num ; i++){
+// 		for(size_t j = i+1 ; j < num ; j++){
+// 			if(list[i]==list[j]){
+// 				return 0;
+// 			}
+// 		}
+// 	}
+// 	return 1;
+// }
 
 // uint8_t combuild(uint8_t com){
 // 	uint8_t x = 0;
@@ -125,162 +140,171 @@ uint8_t choose_list(uint8_t num, uint8_t list[]){
 void builder(uint8_t governor,uint8_t p){
 	int8_t cost_card = 0;
 	//tobuild表示要蓋player的第幾張牌
-	uint8_t tobuild = 0;
+	int8_t tobuild = 0;
 	// sp or sp card to calculate cost
 	if(p == governor){
 		cost_card--;
-		printf("governor discount 1 card\n");
+		printf("Governor discount 1 card\n");
 	}
 	if(player_sum[p]==0){
 		printf("%s builds nothing.\n",player_name[p]);
 		return;
 	}
-	//Black Market
-	while(findcard(p , 2)==1 && product_sum[p]>0){
-		uint8_t newi[3] = {0};
-		uint8_t n = 0;
+// printf("BlackMarket%d,%d,Library%d\n",findcard(p,2),findcard(p,3),findcard(p, 21));	
+	uint8_t crane_card = 0;
+	uint8_t use_crane = 0;
+	for(size_t j = 0 ; j < built_sum[p] ; j++){
+		while(built[p][j]==2&& product_sum[p]>0){
+			uint8_t newi[3] = {0};
+			uint8_t n = 0;
 
-		if(p==0){
-			//player
-			uint8_t choose=0;
-			uint8_t choose2=0;
+			if(p==0){
+				//player
+				uint8_t choose=0;
+				uint8_t choose2=0;
 
-			printf("Please choose up to two goods to discard for black market.(or 0 to skip)\n");
-			for(size_t i = 0 ; i<built_sum[0] ; i++){
-				if(built[0][i]>=6 && built[0][i]<=10 && product[0][i]!=30){
-					printf("%d: %s\n",n+1,name[built[0][i]]);
-					newi[n] = i;
-					n++;
+				printf("Please choose up to two goods to discard for black market.(or 0 to skip)\n");
+				for(size_t i = 0 ; i<built_sum[0] ; i++){
+					if(built[0][i]>=6 && built[0][i]<=10 && product[0][i]!=30){
+						printf("%d: %s\n",n+1,name[built[0][i]]);
+						newi[n] = i;
+						n++;
+					}
 				}
-			}
-			printf("Card1: ");
-			choose = yourans();
-			while(1){
-				if(choose<0||choose>n){
-					printf("input error\n");
-					printf("Card1: ");
-					choose = yourans();
-				}
-			}
-			if(choose==0){
-				break;
-			}
-			else{
-				product[0][newi[choose-1]] = 30;
-				cost_card--;
-				product_sum[0]--;
-			}
-			printf("Card2: ");
-			choose2 = yourans();
-			while(1){
-				if(choose2<0||choose2>n||choose==choose2){
-					printf("input error\n");
-					printf("Card2: ");
-					choose2 = yourans();
-				}
-			}
-			if(choose2==0){
-				break;
-			}
-			else{
-				product[0][newi[choose2-1]] = 30;
-				cost_card--;
-				product_sum[0]--;
-
-			}
-			break;
-
-		}
-		else{
-			//com
-			for(size_t i = 0 ; i<built_sum[0] ; i++){
-				if(built[p][i]>=6 && built[p][i]<=10 && product[0][i]!=30){
-					newi[n] = i;
-					n++;
-					if(n==2){
+				printf("Card1: ");
+				choose = yourans();
+				while(1){
+					if(choose<0||choose>n){
+						printf("input error\n");
+						printf("Card1: ");
+						choose = yourans();
+					}
+					else{
 						break;
 					}
 				}
-			}
-			while(n>=0){
-				product[p][newi[n-1]] = 30;
-				cost_card--;
-				product_sum[p]--;
-				n--;
+				if(choose==0){
+					break;
+				}
+				else{
+					product[0][newi[choose-1]] = 30;
+					cost_card--;
+					product_sum[0]--;
+				}
+				printf("Card2: ");
+				choose2 = yourans();
+				while(1){
+					if(choose2<0||choose2>n||choose==choose2){
+						printf("input error\n");
+						printf("Card2: ");
+						choose2 = yourans();
+					}
+					else{
+						break;
+					}
+				}
+				if(choose2==0){
+					break;
+				}
+				else{
+					product[0][newi[choose2-1]] = 30;
+					cost_card--;
+					product_sum[0]--;
+
+				}
+				break;
 
 			}
-		}
-	}
-	//Crane
-	while(findcard(p , 3)==1 && product_sum[p]>0){
-		if(p==0){
-			//player
-			uint8_t choose = 0;
-			printf("Do you want to use the crane?\n");
-			printf("1: Yes\n");
-			printf("2: No\n");
-			printf("Your answer");
-			choose = yourans();
-			while(choose<=0||choose>2){
-				printf("input error\n");
-				printf("Your answer");
-				choose = yourans();
-			}
-			if(choose==1){
-				printf("Please choose a card to built over.\n");
-				for(size_t i = 0 ; i < built_sum[0] ; i++){
-					
-					printf("%ld: %s\n",i+1,name[built[0][i]]);
+			else{
+				//com
+				for(size_t i = 0 ; i<built_sum[p] ; i++){
+					if(built[p][i]>=6 && built[p][i]<=10 && product[0][i]!=30){
+						newi[n] = i;
+						n++;
+						if(n==2){
+							break;
+						}
+					}
 				}
+				while(n>=0){
+					product[p][newi[n-1]] = 30;
+					cost_card--;
+					product_sum[p]--;
+					n--;
+
+				}
+			}
+		}
+		if(built[p][j]==3){
+			//crane
+			if(p==0){
+				//player
+				uint8_t choose = 0;
+				printf("Do you want to use the crane?\n");
+				printf("1: Yes\n");
+				printf("2: No\n");
+				printf("Your answer: ");
 				choose = yourans();
-				while(choose<=0||choose>built_sum[0]||built[0][choose-1]==3){
-					printf("input error or cannot build over crane\n");
-					printf("Your answer");
+				while(choose<=0||choose>2){
+					printf("input error\n");
+					printf("Your answer: ");
 					choose = yourans();
 				}
-				player_vps[0]-=point[built[0][choose-1]];
-				product[0][choose-1] = 30;
-				cost_card-=cost[built[0][choose-1]];
-				break;
+				if(choose==1){
+					printf("Please choose a card to built over.\n");
+					for(size_t i = 0 ; i < built_sum[0] ; i++){
+						
+						printf("%ld: %s\n",i+1,name[built[0][i]]);
+					}
+					printf("Your answer: ");
+					choose = yourans();
+					while(choose<=0||choose>built_sum[0]||built[0][choose-1]==3){
+						printf("input error or cannot build over crane\n");
+						printf("Your answer: ");
+						choose = yourans();
+					}
+					crane_card = choose-1;
+					// player_vps[0]-=point[built[0][crane_card]];
+					// product[0][crane_card] = 30;
+					cost_card-=cost[built[0][crane_card]];
+					use_crane=1;
 
 
-			}
-			else{
-				break;
-			}
-		}
-		else{
-			//com 
-			uint8_t x= rand()%2;
-			if(x==0 && built_sum[p]>1){
-				//yes
-				// printf("%s use the crane.\n",player_name[p]);
-				uint8_t y = rand()%built_sum[p];
-				while(built[p][y]==3){
-					y = rand()%built_sum[p];
 				}
-				player_vps[p]-=point[built[p][y]];
-				product[p][y] = 30;
-				cost_card-=cost[built[p][y]];
-				break;
-
+				
 			}
 			else{
-				//no
-				break;
+				//com 
+				uint8_t x= rand()%2;
+				if(x==0 && built_sum[p]>1){
+					//yes
+					// printf("%s use the crane.\n",player_name[p]);
+					uint8_t y = rand()%built_sum[p];
+					while(built[p][y]==3){
+						y = rand()%built_sum[p];
+					}
+					crane_card = y;
+					// player_vps[p]-=point[built[p][y]];
+					// product[p][y] = 30;
+					// cost_card-=cost[built[p][y]];
+
+				}
+			
 			}
+
+		}
+		if(built[p][j]==21){
+			printf("Had built Library\n");
+			cost_card-=2;
 		}
 	}
-
-	if(findcard(p, 21)==1){
-		printf("Had built Library\n");
-		cost_card-=2;
-	}
-
+	
+	
 	// choose which card to build
 	if(p==0){
 		//player
 		// char scan[32] = {0};
+		int8_t cost_tmp = 0; 
 		uint8_t choose = 0;
 		uint8_t flag = 0;
 		printf("Please choose a card to build or 0 to skip.\n");
@@ -314,31 +338,39 @@ void builder(uint8_t governor,uint8_t p){
 						break;
 					}
 				}
-				if(findcard(0, 5)==1){
-					printf("Had built Quarry\n");
-					cost_card-=1;
-				}
+				
 			}
-			else if(findcard(p, 0)==1 ){
-				printf("Had built Smithy\n");
-				cost_card-=1;
-			}
+			
 			
 		
 			if(flag == 0){
-				if(cost[player_cardnum[0][tobuild]]>player_sum[0]-1-cost_card){
+				cost_tmp = 0;
+				for(size_t i = 0 ; i < built_sum[0] ; i++){
+					if((player_cardnum[0][tobuild]<6 || player_cardnum[0][tobuild]>10)&&built[0][i]==5){
+						printf("Had built Quarry\n");
+						cost_tmp-=1;
+					}
+					else if((player_cardnum[0][tobuild]>=6 && player_cardnum[0][tobuild]<=10)&&built[0][i]==0){
+						printf("Had built Smithy\n");
+						cost_tmp-=1;
+					}
+				}
+				
+				if(cost[player_cardnum[0][tobuild]]>player_sum[0]-1-cost_card-cost_tmp){
 					printf("input error\n");
 					printf("Your answer: ");
 					choose = yourans();
 				}
 				else{
 					flag=1;
+					cost_card+=cost_tmp;
+
 					break;
 				}
 			}
 
 		}
-	
+		
 	
 	}
 	else{
@@ -351,6 +383,7 @@ void builder(uint8_t governor,uint8_t p){
 		}
 		else{
 			uint8_t flag = 0;
+			int8_t cost_tmp = 0;
 			tobuild = player_sum[p]-1;
 
 			while(flag!=1){
@@ -361,26 +394,36 @@ void builder(uint8_t governor,uint8_t p){
 				}
 				if(player_cardnum[p][tobuild]<6||player_cardnum[p][tobuild]>10){
 					for(size_t i = 0 ; i < built_sum[p] ; i++){
-						if(built[p][i]==player_cardnum[0][tobuild]){
+						if(built[p][i]==player_cardnum[p][tobuild]){
 							flag=2;
 							tobuild--;
 							break;
 						}
 					}
-					if(findcard(p, 5)==1){
-						cost_card--;
-					}
+					
 				}
-				else if (findcard(p, 0)==1){
-					cost_card--;
-				}
+			
 
 				if(flag==0){
-					if(cost[player_cardnum[p][tobuild]]>player_sum[p]-1-cost_card){
+					cost_tmp = 0;
+					for(size_t i = 0 ; i < built_sum[p] ; i++){
+						if((player_cardnum[p][tobuild]<6 || player_cardnum[p][tobuild]>10)&&built[p][i]==5){
+							printf("Had built Quarry\n");
+							cost_tmp-=1;
+						}
+						else if((player_cardnum[p][tobuild]>=6 || player_cardnum[p][tobuild]<=10)&&built[p][i]==0){
+							printf("Had built Smithy\n");
+							cost_tmp-=1;
+						}
+					}
+					if(cost[player_cardnum[p][tobuild]]>player_sum[p]-1-cost_card-cost_tmp){
 						tobuild--;
 					}
 					else{
 						flag=1;
+						cost_card+=cost_tmp;
+	printf("%s builds %s, ",player_name[p],name[player_cardnum[p][tobuild]]);
+
 						break;
 					}
 				}
@@ -390,36 +433,71 @@ void builder(uint8_t governor,uint8_t p){
 		}
 	}
 	//Carpenter
-	if(findcard(p,4) && (tobuild<6 || tobuild>10)){
-		printf("Had built Carpenter\n");
+	for(size_t i = 0 ; i < built_sum[p] ; i++){
+		if((player_cardnum[p][tobuild]<6 || player_cardnum[p][tobuild]>10)&&built[p][i]==4){
+			printf("Had built Carpenter\n");
 
-		player_cardnum[p][player_sum[p]] = setCardNum();
-		player_sum[p]++;
+			player_cardnum[p][player_sum[p]] = setCardNum();
+			player_sum[p]++;
+		}
 	}
-	//build card
-	built[p][built_sum[p]] = player_cardnum[p][tobuild];
-	built_sum[p]++;
 	printf("%s builds %s, ",player_name[p],name[player_cardnum[p][tobuild]]);
-	//delete the card which is built and row all card 
-	cost_card += cost[player_cardnum[p][tobuild]];
-	uint8_t tobuild2 = player_cardnum[p][tobuild];
-	player_vps[p]+=point[player_cardnum[p][tobuild]];
-	for(size_t j = tobuild+1 ; j<player_sum[p] ; j++){
-		player_cardnum[p][j-1] = player_cardnum[p][j];
+
+	uint8_t c_flag = 0;
+	for(size_t i = 0 ; i < built_sum[p] ; i++){
+		if(built[p][i]==3&&use_crane==1){
+			//crane 
+			player_vps[p]-=point[built[p][crane_card]];
+			discard[discard_sum] = built[p][crane_card];
+			discard_sum++;
+			product[p][crane_card] = 30;
+			product_sum[p]--;
+			cost_card += cost[player_cardnum[p][tobuild]];
+			built[p][crane_card] = player_cardnum[p][tobuild];
+			player_vps[p]+=point[player_cardnum[p][tobuild]];
+			for(size_t j = tobuild+1 ; j<player_sum[p] ; j++){
+				player_cardnum[p][j-1] = player_cardnum[p][j];
+			}
+			player_sum[p]--;
+			c_flag = 1;
+			break;
+		}
+		
+			
+		
 	}
-	player_sum[p]--;
+	if(c_flag==0){
+		//build card
+		built[p][built_sum[p]] = player_cardnum[p][tobuild];
+		built_sum[p]++;
+		//delete the card which is built and row all card 
+		cost_card += cost[player_cardnum[p][tobuild]];
+		// uint8_t tobuild2 = player_cardnum[p][tobuild];
+		player_vps[p]+=point[player_cardnum[p][tobuild]];
+		for(size_t j = tobuild+1 ; j<player_sum[p] ; j++){
+			player_cardnum[p][j-1] = player_cardnum[p][j];
+		}
+		player_sum[p]--;
+	}
+	
 
 	
-	printf("need %d card\n",cost_card);
 	// use card to pay
 	if(cost_card<=0){
-		// player_cardnum[p][tobuild] = 0;
-		// for(size_t i = tobuild+1 ; i<player_sum[p] ; i++){
-		// 	player_cardnum[p][i-1] = player_cardnum[p][i];
-		// }
-		// player_sum[p]--;
+		printf("need 0 card.\n");
+		//poor house
+		for(size_t i = 0 ; i < built_sum[p] ; i++){
+			if(built[p][i]==1 && player_sum[p]<=1){
+				printf("Had built poor house\n");
+				player_cardnum[p][player_sum[p]] = setCardNum();
+				player_sum[p]++;
+			}
+		}
+	
 		return;
 	}
+	printf("need %d card\n",cost_card);
+
 	//how to pay
 	if(p==0){
 		//player
@@ -433,13 +511,13 @@ void builder(uint8_t governor,uint8_t p){
 			player_sum[0]=0;
 		}
 		else{
-			uint8_t list[12]={0};
+			uint8_t list[30]={0};
 			for(size_t i = 0 ; i < player_sum[0] ; i++){
 				list[i]=1;
 			}
-			printf("Please choose %d card to pay for %s.\n",cost_card,name[tobuild2]);
+			printf("Please choose %d card to pay.\n",cost_card);
 			for(size_t i = 0 ; i < player_sum[0] ; i++){
-				printf("\t%ld: %s\n",i+1,name[player_cardnum[0][i]]);
+				printf("%ld: %s\n",i+1,name[player_cardnum[0][i]]);
 			}
 			
 			for(size_t i = 0 ; i < cost_card ; i++){
@@ -486,11 +564,16 @@ void builder(uint8_t governor,uint8_t p){
 		player_sum[p]-=cost_card2;
 	}
 	//poor house
-	if(findcard(p, 1)==1 && player_sum[p]<=1){
-		printf("Had built poor house\n");
-		player_cardnum[p][player_sum[p]] = setCardNum();
-		player_sum[p]++;
+	for(size_t i = 0 ; i < built_sum[p] ; i++){
+		if(built[p][i]==1 && player_sum[p]<=1){
+			printf("Had built poor house\n");
+			player_cardnum[p][player_sum[p]] = setCardNum();
+			player_sum[p]++;
+		}
 	}
+	
+
+	
 	
 	return;
 }
@@ -504,6 +587,7 @@ void producer(uint8_t governor, uint8_t p){
 		//governor
 		mostproduce++;
 	}
+	// findcard
 	for(size_t i = 0 ; i < built_sum[p] ; i++){
 		//Aqueduct
 		if(built[p][i]==12){
@@ -546,7 +630,7 @@ void producer(uint8_t governor, uint8_t p){
 		char scan[32] = {0};
 		//how many production
 		uint8_t n = 0;
-		uint8_t list[12]={0};
+		uint8_t list[30]={0};
 		// uint8_t list_n = 0;
 		//在built[0][?]
 		uint8_t prodution_list[12]={0};
@@ -575,6 +659,9 @@ void producer(uint8_t governor, uint8_t p){
 				printf("input error\n");
 				printf("Card%ld: ",i+1);
 				choose = yourans();
+				if(choose==0){
+					break;
+				}
 				
 			}
 			if(choose==0){
@@ -617,10 +704,14 @@ void producer(uint8_t governor, uint8_t p){
 	}
 	else{
 		//well
-		if(findcard(p, 11)==1){
-			player_cardnum[p][player_sum[p]] = setCardNum();
-			player_sum[p]++;
+		for(size_t i = 0 ; i <built_sum[p] ; i++){
+			if(built[p][i]==11){
+				player_cardnum[p][player_sum[p]] = setCardNum();
+				player_sum[p]++;
+				break;
+			}
 		}
+
 		printf("%s produce %d goods\n",player_name[p],wantproduce);
 	}
 }
@@ -637,6 +728,7 @@ void trader(uint8_t governor, uint8_t p,uint8_t m){
 		//governor
 		mostsell++;
 	}
+	// findcard
 	for(size_t i = 0 ; i < built_sum[p] ; i++){
 		//Library
 		if(built[p][i]==21){
@@ -659,13 +751,13 @@ void trader(uint8_t governor, uint8_t p,uint8_t m){
 		uint8_t choose = 0;
 		//how many production
 		uint8_t n = 0;
-		uint8_t list[12]={0};
+		uint8_t list[30]={0};
 		//在built[0][?]
-		uint8_t prodution_list[12]={0};
+		uint8_t prodution_list[30]={0};
 		if(product_sum[0]<mostsell){
 			mostsell = product_sum[0];
 		}
-		printf("Please choose up to  %d goood(s) to sell.(write 0 to skip)\n",mostsell);
+		printf("Please choose up to  %d good(s) to sell.(write 0 to skip)\n",mostsell);
 		for(size_t i = 0 ; i<built_sum[0] ; i++){
 			if(built[0][i]>=6 && built[0][i]<=10 && product[0][i]!=30){
 				printf("%d: %s\n",n+1,name[built[0][i]]);
@@ -679,10 +771,16 @@ void trader(uint8_t governor, uint8_t p,uint8_t m){
 		for(size_t i = 0 ; i < mostsell ; i++){
 			printf("Card%ld: ",i+1);
 			choose =  yourans();
+			if(choose==0){
+				break;
+			}
 			while(choose>n || choose<0 || list[choose-1]==0){
 				printf("input error\n");
 				printf("Card%ld: ",i+1);
 				choose =  yourans();
+				if(choose==0){
+					break;
+				}
 			}
 			if(choose==0){
 				break;
@@ -773,7 +871,7 @@ void prospector(uint8_t governor, uint8_t p){
 	for(size_t i = 0 ; i < built_sum[p] ; i++){
 		//Library
 		if(built[p][i]==21){
-			getcard +=2;
+			getcard =2;
 		}
 		//Gold mine
 		if(built[p][i]==18){
@@ -781,11 +879,11 @@ void prospector(uint8_t governor, uint8_t p){
 		}
 	}
 	if(getcard==0 && flag==0){
-		printf("%s gets no card\n",player_name[p]);
+		printf("%s gets no card.\n",player_name[p]);
 		return;
 	}
 	if(getcard!=0){
-		printf("%s draws %d card(s)\n",player_name[p],getcard);
+		printf("%s draws %d card(s).\n",player_name[p],getcard);
 		while(getcard!=0){
 			player_cardnum[p][player_sum[p]] = setCardNum();
 			player_sum[p]++;
@@ -865,6 +963,7 @@ void counciler(uint8_t governor, uint8_t p){
 		//draw
 		if(built[p][i]==21){
 			draw = 8;
+			break;
 		}
 		else if(p==governor){
 			draw = 5;
@@ -893,7 +992,7 @@ void counciler(uint8_t governor, uint8_t p){
 			// uint8_t flag2 = 0;
 			printf("You have Archive ! Please choose %d card(s) to keep.\n",getcard);
 			uint8_t choose = 0;
-			uint8_t list[25]={0};
+			uint8_t list[40]={0};
 			// uint8_t listnum = 0;
 			for(size_t i = 0 ; i < player_sum[0] ; i++){
 				printf("%ld: %s\n",i+1,name[player_cardnum[0][i]]);
@@ -914,20 +1013,29 @@ void counciler(uint8_t governor, uint8_t p){
 					choose = yourans();
 				}
 				list[choose-1]=0;
-
-				if(choose-1<player_sum[0]){
-					player_cardnum[0][i]=player_cardnum[0][choose-1];
-					discard[discard_sum] = player_cardnum[0][choose-1];
-					discard_sum++;
-					// player_cardnum[0][choose-1]=30;
+			}
+			uint8_t n = 0;
+			for(size_t i = 0 ; i < player_sum[0]+draw ; i++){
+		printf("list[%ld]: %d\n",i,list[i]);
+				if(list[i]==0){
+					if(i<player_sum[0]){
+						player_cardnum[0][n]=player_cardnum[0][i];
+					}
+					else{
+						player_cardnum[0][n]=draw_card[i-player_sum[0]];
+					}
+					n++;
 				}
 				else{
-					player_cardnum[0][i]=draw_card[choose-1-player_sum[0]];
-					discard[discard_sum] = draw_card[choose-1];
-					discard_sum++;
-					draw_card[i]=30;
+					if(i<player_sum[0]){
+						discard[discard_sum] = player_cardnum[0][i];
+						discard_sum++;
+					}
+					else{
+						discard[discard_sum] = draw_card[i];
+						discard_sum++;
+					}
 				}
-
 			}
 			player_sum[0] = getcard;
 		}
@@ -998,6 +1106,9 @@ void counciler(uint8_t governor, uint8_t p){
 	else{
 		//com
 		//only pick draw_card(from draw_card[0])
+		if(flag==1){
+			getcard -= player_sum[p];
+		}
 		for(size_t i = 0 ; i < getcard ; i++){
 			player_cardnum[p][player_sum[p]] = draw_card[i];
 			player_sum[p]++;
@@ -1084,47 +1195,63 @@ void printplayer(){
 }
 
 void finalvps(){
+	uint8_t win = 0;
+
 	for(size_t i = 0 ; i < 4 ; i++){
-		//Guild hall
-		if(findcard(i, 25)==1){
-			for(size_t j = 0 ; j < built_sum[i] ; j++){
-				if(built[i][j]>=6 && built[i][j]<=10){
-					player_vps[i]+=2;
+		for(size_t k = 0 ; k < built_sum[i] ; k++){
+			//Guild hall
+			if(built[i][k]==25){
+				for(size_t j = 0 ; j < built_sum[i] ; j++){
+					if(built[i][j]>=6 && built[i][j]<=10){
+						player_vps[i]+=2;
+					}
 				}
 			}
-		}
-		//City hall
-		if(findcard(i, 26)==1){
-			for(size_t j = 0 ; j < built_sum[i] ; j++){
-				if(built[i][j]<6 && built[i][j]>10){
-					player_vps[i]++;
+			//City hall
+			if(built[i][k]==26){
+				for(size_t j = 0 ; j < built_sum[i] ; j++){
+					if(built[i][j]<6 && built[i][j]>10){
+						player_vps[i]++;
+					}
 				}
 			}
-		}
-		//Triumhal arch
-		if(findcard(i, 27)==1){
-			uint8_t m = 0;
-			for(size_t j = 0 ; j < built_sum[i] ; j++){
-				if(phase[built[i][j]]==8){
-					m++;
+			//Triumhal arch
+			if(built[i][k]==27){
+				uint8_t m = 0;
+				for(size_t j = 0 ; j < built_sum[i] ; j++){
+					if(phase[built[i][j]]==8){
+						m++;
+					}
+				}
+				if(m==1){
+					player_vps[i]+=4;
+				}
+				else if(m==2){
+					player_vps[i]+=6;
+				}
+				else if(m==3){
+					player_vps[i]+=8;
 				}
 			}
-			if(m==1){
-				player_vps[i]+=4;
-			}
-			else if(m==2){
-				player_vps[i]+=6;
-			}
-			else if(m==3){
-				player_vps[i]+=8;
-			}
+			
 		}
-		//Palace
-		if(findcard(i, 28)==1){
-			uint8_t bf_vps = player_vps[i];
-			player_vps[i]+=bf_vps/4;
+		for(size_t k = 0 ; k < built_sum[i] ; k++){
+			//Palace
+			if(built[i][k]==28){
+				uint8_t bf_vps = player_vps[i];
+				player_vps[i]+=bf_vps/4;
+			}
+		
 		}
+		if(player_vps[i]>win){
+			win = i;
+		}
+		
+		printf("%s total: %d\n",player_name[i],player_vps[i]);
+	
 	}
+	printf("%s is winner!\n",player_name[win]);
+	return;
 }
 
 
@@ -1241,6 +1368,7 @@ int main(){
 			else if(chooserole==3){
 				// printf("trader\n");
 				uint8_t m = rand()%5;
+				printf("Price: ");
 				for(size_t i = 0 ; i<5 ; i++){
 					printf("%d",price[m][i]);
 
@@ -1266,7 +1394,7 @@ int main(){
 					counciler(governor,p);
 				}
 			}
-			else{
+			else if(chooserole==5){
 				// printf("prospector\n");
 				for(size_t i = 0 ; i<4 ; i++){
 					//player順序
@@ -1289,10 +1417,16 @@ int main(){
 			getchar();
 			printf("-\n");
 			// sleep(10);
+			if(built_sum[i]==12){
+				printf("Game Over\n");
+				finalvps();
+				return 0;
+			}
 		}
 		// printallcom();
 		// printplayer();
 
+		
 		for(size_t i = 0 ; i < 5 ; i++){
 			role_num[i] = 1;
 		}
@@ -1300,6 +1434,7 @@ int main(){
 		if(governor>3){
 			governor = 0;
 		}
+		printf("supply: %d, discard: %d\n",sum,discard_sum);
 		printf("This turn the governor is \"%s\"\n",player_name[governor]);	
 
 		//Tower and Chapel
@@ -1308,124 +1443,139 @@ int main(){
 		uint8_t dis = 0;
 		//Tower
 		for(size_t i = 0 ; i< 4 ; i++){
-			dis = 0;
-			//判斷棄幾張
-			if(player_sum[i]>7 && findcard(i,19)==0){
-				dis = player_sum[i]-7;
+printf("Tower...\n");
+
+			if(player_sum[i]<=7){
+				dis = 0;
 			}
-			else if(player_sum[i]>12){
-				if(findcard(i,19)==1){
-					dis = player_sum[i]-12;
+			else if(player_sum[i]>7 && player_sum[i]<=12){
+				uint8_t t_flag = 0;
+				for(size_t j = 0 ; j < built_sum[i] ; j++){
+					if(built[i][j]==19){
+						t_flag = 1;
+						break;
+					}
 				}
-				else{
+				if(t_flag==0){
 					dis = player_sum[i]-7;
 				}
 			}
-			if(dis==0){
-				break;
-			}
-			//player or com
-			if(i==0){
-				//player
-				uint8_t choose = 0;
-				uint8_t list[20] = {0};
-				uint8_t list_n = 0;
-				uint8_t flag = 0;
-				printf("Please choose %d card(s) to discard from your hand.\n",dis);
-			
-				while(flag==0){
-					list_n=0;
-					for(size_t j = 0 ; j< player_sum[0] ; j++){
-						printf("%ld: %s\n",j+1,name[player_cardnum[0][j]]);
-					}
-					for(size_t j = 0 ; j< dis ; j++){
-						printf("Card%ld: ",j+1);					
-						choose = yourans();
-						while(choose<=0||choose>dis){
-							printf("input error\n");
-							printf("Card%ld: ",i+1);
-							choose = yourans();
-						}
-						list[list_n] = choose-1;
-						list_n++;
-					}
-
-					if(list_n==1){
+			else{
+				uint8_t t_flag = 0;
+				for(size_t j = 0 ; j < built_sum[i] ; j++){
+					if(built[i][j]==19){
+						dis = player_sum[i]-12;
+						t_flag = 1;
 						break;
 					}
-					flag = choose_list(list_n,list);
-					if(flag==0){
-						printf("Connot choose the same number.\n");
-						printf("Please choose %d card(s) to discard from your hand.\n",dis);
+				}
+				if(t_flag==0){
+					dis = player_sum[i]-7;
+				}
+
+			}
+
+	// printf("%s discards %d card(s)\n",player_name[i],dis);
+
+			if(dis==0){
+
+			}
+			//player or com
+			else if(i==0){
+				//player
+				uint8_t choose = 0;
+				uint8_t list[30] = {0};
+				printf("Please choose %d card(s) to discard from your hand.\n",dis);
+			
+				for(size_t j = 0 ; j < player_sum[0] ; j++){
+					list[j]=1;
+					printf("%ld: %s\n",j+1,name[player_cardnum[0][j]]);
+				}
+				for(size_t j = 0 ; j < dis ; j++){
+					printf("Card%ld: ",j+1);
+					choose = yourans();
+					while(choose<=0||choose>player_sum[0]||list[choose-1]==0){
+						printf("input error\n");
+						printf("Card%ld: ",j+1);
+						choose = yourans();
+					}
+					discard[discard_sum] = player_cardnum[0][choose-1];
+					discard_sum++;
+					list[choose-1]=0;
+				}
+				//row
+				uint8_t n = 0;
+				for(size_t j = 0 ; j < player_sum[0] ; j++){
+					if(list[j]==1){
+						player_cardnum[0][n] = player_cardnum[0][j];
+						n++;
+					}
+					if(n==player_sum[0]-dis){
+						break;
 					}
 				}
+				player_sum[0]-=dis;
+				
 			}
 			else{
 				//com
+				printf("%s discards %d from the hand.\n",player_name[i],dis);
 				for(size_t j = player_sum[i]-1 ; j >= player_sum[i]-dis  ; j--){
 					discard[discard_sum] = player_cardnum[i][j];
 					discard_sum++;
 					player_cardnum[i][j] = 30;
 				}
-				player_sum[i] = 7;
+				
+				player_sum[i] -= dis;
+				
 			}
 		}
 		//Chapel
 		for(size_t i = 0 ; i < 4 ; i++){
-			if(findcard(i, 20)==1){
-				if(i==0){
-					//player
-					uint8_t choose = 0;
-					printf("Please choose one card to put under chapel or 0 to skip.\n");
-					for(size_t j = 0 ; j< player_sum[0] ; j++){
-						printf("%ld: %s\n",j+1,name[player_cardnum[0][j]]);
-					}
-				
-					printf("Your answer: ");					
-					choose = yourans();
-					while(choose<=0||choose>player_sum[0]){
-						printf("input error\n");
+		// printf("Chapel: %d",findcard(1,20));
+			for(size_t j = 0 ; j < built_sum[i] ; j++){
+				if(built[i][j]==20){
+// printf("Chapel...\n");
+					if(i==0){
+						//player
+						uint8_t choose = 0;
+						printf("Please choose one card to put under chapel or 0 to skip.\n");
+						for(size_t j = 0 ; j< player_sum[0] ; j++){
+							printf("%ld: %s\n",j+1,name[player_cardnum[0][j]]);
+						}
+					
 						printf("Your answer: ");					
 						choose = yourans();
+						while(choose<=0||choose>player_sum[0]){
+							printf("input error\n");
+							printf("Your answer: ");					
+							choose = yourans();
+						}
+						if(choose==0){
+							break;
+						}
+						
+						player_vps[0]++;
+						//row the card in hand
+						for(size_t j = choose-1 ; j< player_sum[0] ; j++){
+							player_cardnum[0][j] = player_cardnum[0][j+1];
+						}
+						player_sum[0]--;
 					}
-					if(choose==0){
-						break;
+					else{
+						//com
+	// printf("Chapel.Com...\n");
+
+						player_vps[i]++;
+						player_sum[i]--;
 					}
-					
-					player_vps[0]++;
-					//row the card in hand
-					for(size_t j = choose-1 ; j< player_sum[0] ; j++){
-						player_cardnum[0][j] = player_cardnum[0][j+1];
-					}
-					player_sum[0]--;
-				}
-				else{
-					//com
-					player_vps[i]++;
-					player_sum[i]--;
 				}
 			}
+		
 		}
 
 		
 
-		for(size_t i = 0 ; i < 4 ; i++){
-			if(built_sum[i]==12){
-				finalvps();
-				uint8_t win = 0;
-				printf("%s total: %d\n",player_name[i],player_vps[i]);
-				if(player_vps[i]>win){
-					win = i;
-				}
-				if(i==3){
-					printf("%s has won!\n",player_name[win]);
-					return 0;
-				}
-			}
-			else{
-				break;
-			}
-		}
 		// printf("Press enter to continue...");
 		// yourans();
 		
