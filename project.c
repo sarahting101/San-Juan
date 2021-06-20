@@ -46,6 +46,9 @@ uint8_t built_sum[5] = {1,1,1,1};
 uint8_t product[5][13] = {0};
 uint8_t product_sum[5] = {0};
 
+uint8_t com_level = 0;
+uint8_t built_2[]={28,25,26,10,9,8,7,6};
+
 void safe_flush(FILE *fp){
 	int ch;
 	while( (ch = fgetc(fp)) != EOF && ch != '\n' );     
@@ -73,16 +76,7 @@ uint8_t setCardNum(){
 		sum = discard_sum;
 		discard_sum = 0;
 	}
-	// else if(sum ==1){
-	// 	for(size_t i = 0 ; i < 29 ; i++){
-	// 		if(piece[i]!=0){
-	// 			piece[i]--;
-	// 			sum--;
-	// 			return i;
-	// 		}
-	// 	}
-	// }
-	// x = rand()%sum+1;
+	
 	x = rand()%sum;
 	while(x>=0){
 		// printf("i: %d,",i);
@@ -100,42 +94,50 @@ uint8_t setCardNum(){
 	return i-1;
 }
 
-// uint8_t findcard(uint8_t p, uint8_t b){
-// 	uint8_t i = 0;
-// 	//1isfind
-// 	for(size_t i = 0 ; i < built_sum[p] ; i++){
-// 		if(built[p][i]==b){
-// 			i = 1;
-// 			break;
-// 		}
-// 	}
-// 	return i;
-// }
+uint8_t com_level2(uint8_t p, int8_t cost_card){
+	int8_t cost_2 = 0;
+	uint8_t flag = 0;
+	for(size_t i = 0 ; i < 8 ; i++){
+		for(size_t j = 0 ; j < player_sum[p] ; j++){
+			flag = 0;
+			if(built_2[i]==player_cardnum[p][j]){
+				if(player_cardnum[p][j]<6||player_cardnum[p][j]>10){
+					for(size_t k = 0 ; k < built_sum[p] ; k++){
+						if(built[p][k]==player_cardnum[p][j]){
+							flag = 1;
+							break;
+						}
+					}
+				}
+				if(flag==0){
+					cost_2 = 0;
+					for(size_t k = 0 ; k < built_sum[p] ; k++){
+						if(i>=0&&i<=2&&built[p][k]==5){
+							printf("Had built Quarry\n");
+							cost_2-=1;
+						}
+						else if(i>2&&built[p][k]==0){
+							printf("Had built Smithy\n");
+							cost_2-=1;
+						}
+					}
+					if(cost[player_cardnum[p][j]]<=player_sum[p]-1-cost_card-cost_2){
+						
+						return j;
+					}
+				}
+			}
+			// else{
+			// 	break;
+			// }
 
+		}
 
-// uint8_t choose_list(uint8_t num, uint8_t list[]){
-// 	//return 0: has same answer
-// 	for(size_t i = 0 ; i < num ; i++){
-// 		for(size_t j = i+1 ; j < num ; j++){
-// 			if(list[i]==list[j]){
-// 				return 0;
-// 			}
-// 		}
-// 	}
-// 	return 1;
-// }
+	}
+	printf("%s cannot find level2 building.\n",player_name[p]);
+	return 30;
+}
 
-// uint8_t combuild(uint8_t com){
-// 	uint8_t x = 0;
-// 	int8_t cost_card;
-// 	for(int8_t i = player_sum[com]-1 ; i>=0 ; i--){
-// 		if(cost[player_cardnum[com][i]]<=player_sum[com]-1+cost_card){
-			
-// 			return i;
-// 		}
-// 	}
-// 	return 100;
-// }
 
 void builder(uint8_t governor,uint8_t p){
 	int8_t cost_card = 0;
@@ -150,11 +152,11 @@ void builder(uint8_t governor,uint8_t p){
 		printf("%s builds nothing.\n",player_name[p]);
 		return;
 	}
-// printf("BlackMarket%d,%d,Library%d\n",findcard(p,2),findcard(p,3),findcard(p, 21));	
 	uint8_t crane_card = 0;
 	uint8_t use_crane = 0;
 	for(size_t j = 0 ; j < built_sum[p] ; j++){
 		while(built[p][j]==2&& product_sum[p]>0){
+			//Black market
 			uint8_t newi[3] = {0};
 			uint8_t n = 0;
 
@@ -378,62 +380,90 @@ void builder(uint8_t governor,uint8_t p){
 	}
 	else{
 		//com
-		uint8_t x =  rand()%2;
-		// printf("%d\n",x);
-		if(x==0 || (player_sum[p]-1)==0){
-			printf("%s builds nothing.\n",player_name[p]);
-			return;
-		}
-		else{
-			uint8_t flag = 0;
-			int8_t cost_tmp = 0;
-			tobuild = player_sum[p]-1;
-
-			while(flag!=1){
-				flag = 0;
-				if(tobuild<0){
-					printf("%s builds nothing.\n",player_name[p]);
-					return;
-				}
-				if(player_cardnum[p][tobuild]<6||player_cardnum[p][tobuild]>10){
+		uint8_t flag_2 = 0;
+		while(flag_2==0){
+			if(com_level == 2 && player_sum[p]-1!=0){
+				uint8_t tobuild_tmp = 0;
+				tobuild_tmp = com_level2(p,cost_card);
+				if(tobuild_tmp!=30){
+					uint8_t cost_2 = 0;
+					tobuild = tobuild_tmp;
+					cost_2 = 0;
 					for(size_t i = 0 ; i < built_sum[p] ; i++){
-						if(built[p][i]==player_cardnum[p][tobuild]){
-							flag=2;
+						if(i>=0&&i<=2&&built[p][i]==5){
+							// printf("Had built Quarry\n");
+							cost_2-=1;
+						}
+						else if(i>2&&built[p][i]==0){
+							// printf("Had built Smithy\n");
+							cost_2-=1;
+						}
+					}
+					cost_card-=cost_2;
+					flag_2 = 1;
+					break;
+				}
+			}
+			uint8_t x =  rand()%2;
+			// printf("%d\n",x);
+			if(x==0 || (player_sum[p]-1)==0){
+				printf("%s builds nothing.\n",player_name[p]);
+				return;
+			}
+
+			else{
+				uint8_t flag = 0;
+				int8_t cost_tmp = 0;
+				tobuild = player_sum[p]-1;
+
+				while(flag!=1){
+					flag = 0;
+					if(tobuild<0){
+						printf("%s builds nothing.\n",player_name[p]);
+						return;
+					}
+					if(player_cardnum[p][tobuild]<6||player_cardnum[p][tobuild]>10){
+						for(size_t i = 0 ; i < built_sum[p] ; i++){
+							if(built[p][i]==player_cardnum[p][tobuild]){
+								flag=2;
+								tobuild--;
+								break;
+							}
+						}
+						
+					}
+				
+
+					if(flag==0){
+						cost_tmp = 0;
+						for(size_t i = 0 ; i < built_sum[p] ; i++){
+							if((player_cardnum[p][tobuild]<6 || player_cardnum[p][tobuild]>10)&&built[p][i]==5){
+								printf("Had built Quarry\n");
+								cost_tmp-=1;
+							}
+							else if((player_cardnum[p][tobuild]>=6 || player_cardnum[p][tobuild]<=10)&&built[p][i]==0){
+								printf("Had built Smithy\n");
+								cost_tmp-=1;
+							}
+						}
+						if(cost[player_cardnum[p][tobuild]]>player_sum[p]-1-cost_card-cost_tmp){
 							tobuild--;
+						}
+						else{
+							flag=1;
+							flag_2 = 1;
+
+							cost_card+=cost_tmp;
+		// printf("%s builds %s, ",player_name[p],name[player_cardnum[p][tobuild]]);
+
 							break;
 						}
-					}
-					
-				}
-			
-
-				if(flag==0){
-					cost_tmp = 0;
-					for(size_t i = 0 ; i < built_sum[p] ; i++){
-						if((player_cardnum[p][tobuild]<6 || player_cardnum[p][tobuild]>10)&&built[p][i]==5){
-							printf("Had built Quarry\n");
-							cost_tmp-=1;
-						}
-						else if((player_cardnum[p][tobuild]>=6 || player_cardnum[p][tobuild]<=10)&&built[p][i]==0){
-							printf("Had built Smithy\n");
-							cost_tmp-=1;
-						}
-					}
-					if(cost[player_cardnum[p][tobuild]]>player_sum[p]-1-cost_card-cost_tmp){
-						tobuild--;
-					}
-					else{
-						flag=1;
-						cost_card+=cost_tmp;
-	// printf("%s builds %s, ",player_name[p],name[player_cardnum[p][tobuild]]);
-
-						break;
 					}
 				}
 			}
 			
-			
 		}
+
 	}
 	//Carpenter
 	for(size_t i = 0 ; i < built_sum[p] ; i++){
@@ -1294,6 +1324,19 @@ int main(){
 		}
 	}
 	printf("Start!\n");
+	printf("Choose the computer agents level:\n");
+	printf("1: Level 1\n");
+	printf("2: Level 2\n");
+	printf("Your answer: ");
+	uint8_t choose = 0;
+	choose = yourans();
+	while(choose<=0||choose>2){
+		printf("input error\n");
+		printf("Your answer: ");
+		choose = yourans();
+	}
+	com_level = choose;
+	printf("Computer agents are level%d.\n",com_level);
 	printallcom();
 	printplayer();
 	printf("Press ENTER to continue...");
